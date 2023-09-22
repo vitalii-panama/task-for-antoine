@@ -1,0 +1,70 @@
+<style>
+  .progress {
+    font-size: 12px;
+        margin-bottom: 1rem;
+  }
+  div.progress-container {
+    display: block;
+    height: 5px;
+    width: 100%;
+    background: #e0e0e0;
+    margin-top: 1rem;
+        border-radius: 5px;
+  }
+  div.progress-bar {
+    display: block;
+    height: 100%;
+    background: black;
+        border-radius: 5px;
+  }
+  .progress p {
+    margin-top: 5px;
+  }
+  .compliment-items {
+    display: flex;
+    flex-directiom: row;
+    justify-content: space-around;
+  }
+  .compliment-item {
+    width: 100px;
+  }
+</style>
+
+{% assign itemInCart = false %}
+{% for item in collections['Compliment'].products %}
+  {% for cartItem in cart.items %}
+    {% if cartItem.product.id == item.id and cartItem.price == 0 %}
+      {% assign itemInCart = true %}
+    {% endif %}
+  {% endfor %}
+{% endfor %}
+
+{% assign cart_total_price = cart.total_price %}
+{% assign max_cart_value = 15000 %}
+{% assign progress_percentage = cart_total_price | times: 100 | divided_by: max_cart_value %}
+{% assign progress_percentage = progress_percentage | at_most: 100 %}
+<div class="progress">
+  <div class="progress-container">
+    <div class="progress-bar" style="width: {{ progress_percentage }}%;"></div>
+  </div>
+  {% if cart_total_price >= 10000 and cart_total_price < 15000 %}
+    <p>Congratulations! You've earned free shipping.</p>
+    {% elsif cart_total_price >= 15000 %}
+    <p>You've unlocked a free product! {% unless itemInCart %}Choose your favorite.{% endunless %}</p>
+    {% unless itemInCart %}
+      <div class="compliment-items">
+        {% for item in collections['Compliment'].products %}
+            <div class="compliment-item">
+              <img src="{{ item.featured_image | img_url: '100x100' }}" width="100" height="100" alt="" loading="lazy">
+              <div>{{ item.title }}</div>
+              {%- assign product_form_id = 'product-form-' | append: section.id -%}
+              {%- render 'buy-buttons', product: item, product_form_id: product_form_id, section_id: section.id, show_pickup_availability: true -%}
+            </div>
+        {% endfor %}
+      </div>
+    {% endunless %}
+
+    {% elsif cart_total_price < 10000 %}
+    <p>You are {{ max_cart_value | minus: cart_total_price | money }} away from free shipping</p>
+  {% endif %}
+</div>
